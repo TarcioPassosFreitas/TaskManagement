@@ -1,0 +1,37 @@
+version: '3.4'
+services:
+  db:
+    image: "mcr.microsoft.com/mssql/server"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourNewPassword!123"
+      MSSQL_PID: "developer"
+    ports:
+      - "1433:1433"
+    networks:
+      - local
+    healthcheck:
+      test: [ "CMD", "/opt/mssql-tools/bin/sqlcmd", "-U", "sa", "-P", "YourNewPassword!123", "-Q", "select 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  taskmanagement:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DbServer: "db"
+      DbPort: "1433"
+      DbUser: "sa"
+      Password: "YourNewPassword!123"
+      Database: "TaskDb"
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - local
+
+networks:
+    local:
